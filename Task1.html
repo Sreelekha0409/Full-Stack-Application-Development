@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Registration</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Student Registration Form</h1>
+
+    <form id="studentForm" class="card">
+      <label>Full Name
+        <input type="text" name="fullName" required minlength="3" placeholder="Enter full name">
+      </label>
+
+      <label>Email
+        <input type="email" name="email" required placeholder="example@gmail.com">
+      </label>
+
+      <label>Date of Birth
+        <input type="date" name="dob" required>
+      </label>
+
+      <label>Department
+        <select name="department" required>
+          <option value="" disabled selected>Select</option>
+          <option>CSE</option>
+          <option>ECE</option>
+          <option>EEE</option>
+          <option>IT</option>
+          <option>MECH</option>
+          <option>CIVIL</option>
+        </select>
+      </label>
+
+      <label>Phone
+        <input type="tel" name="phone" required pattern="[0-9]{10}" placeholder="10-digit phone">
+      </label>
+
+      <button type="submit">Register</button>
+      <p id="msg"></p>
+    </form>
+
+    <div class="card">
+      <h2>Stored Students</h2>
+      <button id="loadBtn">Load Records</button>
+
+      <table id="studentsTable">
+        <thead>
+          <tr>
+            <th>ID</th><th>Name</th><th>Email</th><th>DOB</th><th>Dept</th><th>Phone</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+  const form = document.getElementById("studentForm");
+  const msg = document.getElementById("msg");
+  const loadBtn = document.getElementById("loadBtn");
+  const tbody = document.querySelector("#studentsTable tbody");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const payload = Object.fromEntries(new FormData(form).entries());
+    msg.textContent = "Submitting...";
+
+    try {
+      const res = await fetch("http://localhost:5169/api/students", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || "Failed");
+
+      msg.textContent = "✅ Registered Successfully!";
+      form.reset();
+    } catch(err) {
+      msg.textContent = "❌ " + err.message;
+    }
+  });
+
+  loadBtn.addEventListener("click", async () => {
+    tbody.innerHTML = "<tr><td colspan='6'>Loading...</td></tr>";
+    const res = await fetch("http://localhost:5169/api/students");
+    const rows = await res.json();
+    tbody.innerHTML = "";
+
+    rows.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${r.studentID}</td>
+        <td>${r.fullName}</td>
+        <td>${r.email}</td>
+        <td>${r.dob.split("T")[0]}</td>
+        <td>${r.department}</td>
+        <td>${r.phone}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    if(rows.length === 0){
+      tbody.innerHTML = "<tr><td colspan='6'>No records found</td></tr>";
+    }
+  });
+</script>
+</body>
+</html>

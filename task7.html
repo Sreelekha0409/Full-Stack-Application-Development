@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interactive Feedback Form</title>
+
+    <style>
+        body{
+            font-family: Arial;
+            background:#f2f2f2;
+        }
+
+        .container{
+            width:400px;
+            margin:40px auto;
+            background:white;
+            padding:20px;
+            border-radius:8px;
+            box-shadow:0 0 10px gray;
+        }
+
+        input, textarea{
+            width:100%;
+            padding:8px;
+            margin:8px 0;
+        }
+
+        .hover{
+            border:2px solid blue;
+            background:#eef;
+        }
+
+        .error{
+            color:red;
+            font-size:12px;
+        }
+
+        .success{
+            color:green;
+            font-weight:bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Customer Feedback Form</h2>
+
+<form id="feedbackForm">
+
+    Name:
+    <input type="text" id="name">
+    <div class="error" id="nameErr"></div>
+
+    Email:
+    <input type="text" id="email">
+    <div class="error" id="emailErr"></div>
+
+    Rating (1-5):
+    <input type="number" id="rating" min="1" max="5">
+    <div class="error" id="ratingErr"></div>
+
+    Feedback:
+    <textarea id="message"></textarea>
+    <div class="error" id="msgErr"></div>
+
+    <button type="button" id="submitBtn">Double Click to Submit</button>
+
+    <p id="status"></p>
+
+</form>
+
+</div>
+
+<script>
+
+const fields = document.querySelectorAll("input, textarea");
+
+
+// ===== Hover Highlight =====
+fields.forEach(field=>{
+    field.addEventListener("mouseover",()=>field.classList.add("hover"));
+    field.addEventListener("mouseout",()=>field.classList.remove("hover"));
+});
+
+
+// ===== Reusable Validation Functions =====
+
+function isEmpty(value){
+    return value.trim()==="";
+}
+
+function validEmail(email){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function showError(id,msg){
+    document.getElementById(id).innerText = msg;
+}
+
+
+// ===== Keypress Validation =====
+
+document.getElementById("name").onkeyup = function(){
+    showError("nameErr", isEmpty(this.value) ? "Name required" : "");
+}
+
+document.getElementById("email").onkeyup = function(){
+    showError("emailErr", validEmail(this.value) ? "" : "Invalid email");
+}
+
+document.getElementById("rating").onkeyup = function(){
+    showError("ratingErr", (this.value>=1 && this.value<=5) ? "" : "Rating 1-5 only");
+}
+
+document.getElementById("message").onkeyup = function(){
+    showError("msgErr", isEmpty(this.value) ? "Feedback required" : "");
+}
+
+
+// ===== Submit on Double Click =====
+
+document.getElementById("submitBtn").ondblclick = function(){
+
+    let name = document.getElementById("name").value;
+    let email = document.getElementById("email").value;
+    let rating = document.getElementById("rating").value;
+    let msg = document.getElementById("message").value;
+
+    if(isEmpty(name) || !validEmail(email) || rating<1 || rating>5 || isEmpty(msg)){
+        document.getElementById("status").innerHTML =
+            "<span class='error'>Please fill all fields correctly!</span>";
+        return;
+    }
+
+    document.getElementById("status").innerHTML =
+        "<span class='success'>Feedback submitted successfully ✔</span>";
+}
+
+</script>
+
+</body>
+</html>

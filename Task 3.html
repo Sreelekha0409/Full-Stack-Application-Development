@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login System</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Login</h2>
+
+    <form id="loginForm">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="Enter email" />
+      <small id="emailErr" class="err"></small>
+
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Enter password" />
+      <small id="passErr" class="err"></small>
+
+      <button type="submit">Login</button>
+      <p id="msg"></p>
+    </form>
+  </div>
+
+<script>
+  const form = document.getElementById("loginForm");
+  const email = document.getElementById("email");
+  const password = document.getElementById("password");
+  const emailErr = document.getElementById("emailErr");
+  const passErr = document.getElementById("passErr");
+  const msg = document.getElementById("msg");
+
+  function showError(el, text) {
+    el.textContent = text;
+  }
+
+  function clearErrors(){
+    emailErr.textContent = "";
+    passErr.textContent = "";
+    msg.textContent = "";
+    msg.className = "";
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    let valid = true;
+
+    // ✅ Client-side validation
+    if (email.value.trim() === "") {
+      showError(emailErr, "Email is required.");
+      valid = false;
+    } else if (!email.value.includes("@")) {
+      showError(emailErr, "Enter a valid email.");
+      valid = false;
+    }
+
+    if (password.value.trim() === "") {
+      showError(passErr, "Password is required.");
+      valid = false;
+    } else if (password.value.length < 6) {
+      showError(passErr, "Password must be at least 6 characters.");
+      valid = false;
+    }
+
+    if (!valid) return;
+
+    // ✅ Database check via API
+    msg.textContent = "Checking credentials...";
+    try {
+      const res = await fetch("http://localhost:5000/api/login", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ email: email.value, password: password.value })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        msg.textContent = data.error;
+        msg.className = "error-msg";
+        return;
+      }
+
+      msg.textContent = data.message;
+      msg.className = "success-msg";
+
+      // Example redirect after login:
+      // window.location.href = "dashboard.html";
+
+    } catch (err) {
+      msg.textContent = "Network error: " + err.message;
+      msg.className = "error-msg";
+    }
+  });
+</script>
+</body>
+</html>
